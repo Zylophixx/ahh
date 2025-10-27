@@ -8,16 +8,23 @@ interface SplashScreenProps {
 export function SplashScreen({ onComplete }: SplashScreenProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
-  const [dots, setDots] = useState('');
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const dotsInterval = setInterval(() => {
-      setDots(prev => prev.length >= 3 ? '' : prev + '.');
-    }, 400);
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(progressInterval);
+          return 100;
+        }
+        return prev + 2;
+      });
+    }, 50);
 
     const tl = gsap.timeline({
       onComplete: () => {
-        clearInterval(dotsInterval);
+        clearInterval(progressInterval);
         onComplete();
       }
     });
@@ -55,7 +62,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
 
     return () => {
       tl.kill();
-      clearInterval(dotsInterval);
+      clearInterval(progressInterval);
     };
   }, [onComplete]);
 
@@ -65,14 +72,26 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       className="fixed inset-0 z-[10000] flex items-center justify-center bg-black opacity-0"
       style={{ pointerEvents: 'none' }}
     >
-      <div className="relative flex flex-col items-center justify-center text-center px-6">
+      <div className="relative flex flex-col items-center justify-center text-center px-6 w-full max-w-2xl">
         <div
           ref={textRef}
-          className="opacity-0"
+          className="opacity-0 w-full"
         >
-          <h1 className="text-3xl md:text-5xl font-bosenAlt text-white tracking-wide mb-2">
-            WAIT, LET ME SET THINGS FOR YOU{dots}
+          <h1 className="text-3xl md:text-5xl font-bosenAlt text-white tracking-wide mb-8">
+            WAIT, LET ME SET THINGS FOR YOU
           </h1>
+
+          <div className="w-full bg-white/20 h-2 rounded-full overflow-hidden">
+            <div
+              ref={progressBarRef}
+              className="h-full bg-white transition-all duration-100 ease-linear"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+          <p className="text-white/60 text-lg md:text-xl font-bosenAlt mt-4">
+            {progress}%
+          </p>
         </div>
       </div>
     </div>

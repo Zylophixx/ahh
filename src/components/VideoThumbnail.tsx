@@ -100,27 +100,26 @@ export function VideoThumbnail({
     const container = containerRef.current;
     if (!container) return;
 
-    // Load video immediately for non-showreel videos
-    if (!isShowreel && videoRef.current && !videoLoaded) {
-      videoAutoplayQueue.add(async () => {
-        if (videoRef.current) {
-          videoRef.current.src = src;
-          videoRef.current.muted = true;
-          videoRef.current.load();
-        }
-      });
-    }
-
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsInView(true);
           observer.disconnect();
 
-          // Auto-play for non-showreel videos using staggered queue
-          if (!isShowreel) {
-            videoAutoplayQueue.add(async () => {
+          // Staggered load for non-showreel videos
+          if (!isShowreel && videoRef.current && !videoLoaded) {
+            videoAutoplayQueue.addLoad(async () => {
               if (videoRef.current) {
+                videoRef.current.src = src;
+                videoRef.current.muted = true;
+                videoRef.current.load();
+                setVideoLoaded(true);
+              }
+            });
+
+            // Auto-play after loading with additional delay
+            videoAutoplayQueue.add(async () => {
+              if (videoRef.current && videoLoaded) {
                 setIsLoading(true);
 
                 try {

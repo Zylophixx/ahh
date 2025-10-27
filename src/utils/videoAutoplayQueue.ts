@@ -2,11 +2,21 @@ class VideoAutoplayQueue {
   private queue: Array<() => Promise<void>> = [];
   private isProcessing = false;
   private delay = 150;
+  private loadQueue: Array<() => Promise<void>> = [];
+  private isLoadProcessing = false;
+  private loadDelay = 100;
 
   add(playFunction: () => Promise<void>) {
     this.queue.push(playFunction);
     if (!this.isProcessing) {
       this.process();
+    }
+  }
+
+  addLoad(loadFunction: () => Promise<void>) {
+    this.loadQueue.push(loadFunction);
+    if (!this.isLoadProcessing) {
+      this.processLoad();
     }
   }
 
@@ -28,8 +38,30 @@ class VideoAutoplayQueue {
     this.isProcessing = false;
   }
 
+  private async processLoad() {
+    this.isLoadProcessing = true;
+
+    while (this.loadQueue.length > 0) {
+      const loadFunction = this.loadQueue.shift();
+      if (loadFunction) {
+        try {
+          await loadFunction();
+        } catch (error) {
+          console.error('Error in load queue:', error);
+        }
+        await new Promise(resolve => setTimeout(resolve, this.loadDelay));
+      }
+    }
+
+    this.isLoadProcessing = false;
+  }
+
   setDelay(ms: number) {
     this.delay = ms;
+  }
+
+  setLoadDelay(ms: number) {
+    this.loadDelay = ms;
   }
 }
 

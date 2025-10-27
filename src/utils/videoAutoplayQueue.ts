@@ -4,7 +4,7 @@ class VideoAutoplayQueue {
   private delay = 250;
   private loadQueue: Array<() => Promise<void>> = [];
   private isLoadProcessing = false;
-  private loadDelay = 300;
+  private loadDelay = 400;
 
   add(playFunction: () => Promise<void>) {
     this.queue.push(playFunction);

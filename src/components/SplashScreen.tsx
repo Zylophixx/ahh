@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 
 interface SplashScreenProps {
@@ -7,28 +7,22 @@ interface SplashScreenProps {
 
 export function SplashScreen({ onComplete }: SplashScreenProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const dotRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
+  const [dots, setDots] = useState('');
 
   useEffect(() => {
+    const dotsInterval = setInterval(() => {
+      setDots(prev => prev.length >= 3 ? '' : prev + '.');
+    }, 400);
+
     const tl = gsap.timeline({
       onComplete: () => {
+        clearInterval(dotsInterval);
         onComplete();
       }
     });
 
     tl.set(containerRef.current, { opacity: 1 })
-      .fromTo(dotRef.current,
-        {
-          scale: 0,
-          opacity: 1
-        },
-        {
-          scale: 10,
-          duration: 0.8,
-          ease: 'power2.out'
-        }
-      )
       .fromTo(textRef.current,
         {
           opacity: 0,
@@ -37,26 +31,18 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         {
           opacity: 1,
           y: 0,
-          duration: 0.6,
+          duration: 0.8,
           ease: 'power2.out'
-        },
-        '-=0.2'
-      )
-      .to({}, { duration: 0.4 })
-      .to(dotRef.current,
-        {
-          scale: 100,
-          duration: 1.2,
-          ease: 'power2.inOut'
         }
       )
+      .to({}, { duration: 2.5 })
       .to(textRef.current,
         {
           opacity: 0,
-          duration: 0.4,
+          y: -20,
+          duration: 0.5,
           ease: 'power2.in'
-        },
-        '-=1.0'
+        }
       )
       .to(containerRef.current,
         {
@@ -64,11 +50,12 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           duration: 0.6,
           ease: 'power2.inOut'
         },
-        '-=0.3'
+        '-=0.2'
       );
 
     return () => {
       tl.kill();
+      clearInterval(dotsInterval);
     };
   }, [onComplete]);
 
@@ -78,18 +65,13 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       className="fixed inset-0 z-[10000] flex items-center justify-center bg-black opacity-0"
       style={{ pointerEvents: 'none' }}
     >
-      <div className="relative flex flex-col items-center justify-center">
-        <div
-          ref={dotRef}
-          className="absolute w-8 h-8 bg-white rounded-full"
-          style={{ transformOrigin: 'center center' }}
-        />
+      <div className="relative flex flex-col items-center justify-center text-center px-6">
         <div
           ref={textRef}
-          className="relative z-10 opacity-0"
+          className="opacity-0"
         >
-          <h1 className="text-[70px] md:text-[80px] font-bosenAlt text-black tracking-wider">
-            HELLOOO!
+          <h1 className="text-3xl md:text-5xl font-bosenAlt text-white tracking-wide mb-2">
+            WAIT, LET ME SET THINGS FOR YOU{dots}
           </h1>
         </div>
       </div>
